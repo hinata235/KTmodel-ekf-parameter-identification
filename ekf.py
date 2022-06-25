@@ -3,24 +3,32 @@
 #モジュールのインポート
 import numpy as np
 
-def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta):
+def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
 
     """KTモデルのekf(拡張カルマンフィルタ)
     引数:
         dt:観測幅[s],float
         simulate_time:シミュレーション時間[s],int
-        X_hat:状態推定値の初期値　4行1列
+        X_hat:状態推定値の初期値　9行1列
+            x:位置[m]
+            y:位置[m]
+            dx:速度[m/s]
+            dy速度[m/s]
             phi:回頭角[rad]
+            r:回答角速度[rad/s]
+            theta1=1/T
+            theta2=K/Tphi:回頭角[rad]
             r:回答角速度[rad/s]
             theta1:パラメーターθ1
             theta2:パラメーターθ2
+        u:船速[m/s]
 
         Y:観測値[phi,r],list 2行1列
             phi:回頭角[rad]
             r:回答角速度[rad/s]
-        Q:システムノイズの分散共分散行列,ndarray 4行4列
+        Q:システムノイズの分散共分散行列,ndarray 9行9列
         R:観測ノイズの分散共分散行列,ndarray 2行2列
-        P:共分散行列の初期値 4行4列
+        P:共分散行列の初期値 9行9列
         delta:舵角[rad],list
 
     返り値
@@ -32,10 +40,10 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta):
     """
 
     #観測関数行列H　2行4列
-    H=np.array(
-        [[1,0,0,0],
-        [0,1,0,0]], dtype=np.float32
-    )
+    H=np.array([
+        [0,0,0,0,1,0,0,0,0],
+        [0,0,0,0,0,1,0,0,0]
+        ])
 
 
     X_hat_list=[] #状態推定値のリスト
@@ -48,31 +56,50 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta):
     #逐次的に状態を推定
     for i in range(int(simulate_time/dt)):
         
+        #状態量を更新する
+        X=X_hat_list[i]
+
         #FのヤコビアンA 4行4列
-        A=np.array(
-            [[1,dt,0,0],
-             [0,(1-X_hat_list[i][2])*dt,-X_hat_list[i][3]*dt,delta[i]*dt],
-             [0,0,1,0],
-             [0,0,0,1]], dtype=np.float32
-        )
+        A=np.array([
+            [1,0,dt,0,0,0,0,0,0],
+            [0,1,0,dt,0,0,0,0,0],
+            [0,0,0,0,-u*np.cos(X[4]),0,0,0,0],
+            [0,0,0,0,u*np.sin(X[4]),0,0,0,0],
+            [0,0,0,0,1,dt,0,0,0],
+            [0,0,0,0,0,1,dt,0,0],
+            [0,0,0,0,0,-X[7],0,-X[5],delta[i]],
+            [0,0,0,0,0,0,0,1,0],
+            [0,0,0,0,0,0,0,0,1]
+            ], dtype=np.float32)
 
         A_list.append(A)
 
         #予測ステップ
         ##事前推定値
         _X_hat=np.array([
-            X_hat_list[i][0]+X_hat_list[i][1]*dt,
-            (1-X_hat_list[i][2])*dt*X_hat_list[i][1]+X_hat_list[i][3]*delta[i]*dt,
-            X_hat_list[i][2],
-            X_hat_list[i][3]], dtype=np.float32
-            )
+            X[0]+X[2]*dt,
+            X[1]+X[3]*dt,
+            u*np.cos(X[4]),
+            u*np.sin(X[4]),
+            X[4]+X[5]*dt,
+            X[5]+X[6]*dt,
+            X[8]*delta[i]-X[7]*X[5],
+            X[7],
+            X[8]
+        ])
 
         ##事前誤差共分散
         _V_hat=A@np.array([
-            [V_hat_list[i][0][0],0,0,0],
-            [0,V_hat_list[i][1][0],0,0],
-            [0,0,V_hat_list[i][2][0],0],
-            [0,0,0,V_hat_list[i][3][0]]], dtype=np.float32)@A.T+Q
+            [V_hat_list[i][0][0],0,0,0,0,0,0,0,0],
+            [0,V_hat_list[i][1][1],0,0,0,0,0,0,0],
+            [0,0,V_hat_list[i][2][2],0,0,0,0,0,0],
+            [0,0,0,V_hat_list[i][3][3],0,0,0,0,0],
+            [0,0,0,0,V_hat_list[i][4][4],0,0,0,0],
+            [0,0,0,0,0,V_hat_list[i][5][5],0,0,0],
+            [0,0,0,0,0,0,V_hat_list[i][6][6],0,0],
+            [0,0,0,0,0,0,0,V_hat_list[i][7][7],0],
+            [0,0,0,0,0,0,0,0,V_hat_list[i][8][8]]
+            ], dtype=np.float32)@A.T+Q
 
         #更新ステップ
         ##逆行列の計算
