@@ -3,7 +3,7 @@
 #モジュールのインポート
 import numpy as np
 
-def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
+def ekf(dt,simulate_time,X_hat,Y_list,Q,R,V_hat,delta,u):
 
     """KTモデルのekf(拡張カルマンフィルタ)
     引数:
@@ -41,8 +41,8 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
 
     #観測関数行列H　2行4列
     H=np.array([
-        [0,0,0,0,1,0,0,0,0],
-        [0,0,0,0,0,1,0,0,0]
+        [0,0,0,0,1,0,0,0],
+        [0,0,0,0,0,1,0,0]
         ])
 
 
@@ -58,23 +58,25 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
         
         #状態量を更新する
         X=X_hat_list[i]
+        Y=Y_list[i]
 
         #FのヤコビアンA 4行4列
         A=np.array([
-            [1,0,dt,0,0,0,0,0,0],
-            [0,1,0,dt,0,0,0,0,0],
-            [0,0,0,0,-u*np.cos(X[4]),0,0,0,0],
-            [0,0,0,0,u*np.sin(X[4]),0,0,0,0],
-            [0,0,0,0,1,dt,0,0,0],
-            [0,0,0,0,0,1,dt,0,0],
-            [0,0,0,0,0,-X[7],0,-X[5],delta[i]],
-            [0,0,0,0,0,0,0,1,0],
-            [0,0,0,0,0,0,0,0,1]
+            [1,0,dt,0,0,0,0,0],
+            [0,1,0,dt,0,0,0,0],
+            [0,0,0,0,-u*np.cos(X[4]),0,0,0],
+            [0,0,0,0,u*np.sin(X[4]),0,0,0],
+            [0,0,0,0,1,dt,0,0],
+            [0,0,0,0,0,1-X[6]*dt,-X[5]*dt,delta[i]*dt],
+            [0,0,0,0,0,0,1,0],
+            [0,0,0,0,0,0,0,1]
             ], dtype=np.float32)
 
         A_list.append(A)
 
         #予測ステップ
+        #システムノイズ
+
         ##事前推定値
         _X_hat=np.array([
             X[0]+X[2]*dt,
@@ -82,23 +84,21 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
             u*np.cos(X[4]),
             u*np.sin(X[4]),
             X[4]+X[5]*dt,
-            X[5]+X[6]*dt,
-            X[8]*delta[i]-X[7]*X[5],
-            X[7],
-            X[8]
+            (1-X[6]*dt)*X[5]+X[7]*delta[i]*dt,
+            X[6],
+            X[7]
         ])
 
         ##事前誤差共分散
         _V_hat=A@np.array([
-            [V_hat_list[i][0][0],0,0,0,0,0,0,0,0],
-            [0,V_hat_list[i][1][1],0,0,0,0,0,0,0],
-            [0,0,V_hat_list[i][2][2],0,0,0,0,0,0],
-            [0,0,0,V_hat_list[i][3][3],0,0,0,0,0],
-            [0,0,0,0,V_hat_list[i][4][4],0,0,0,0],
-            [0,0,0,0,0,V_hat_list[i][5][5],0,0,0],
-            [0,0,0,0,0,0,V_hat_list[i][6][6],0,0],
-            [0,0,0,0,0,0,0,V_hat_list[i][7][7],0],
-            [0,0,0,0,0,0,0,0,V_hat_list[i][8][8]]
+            [V_hat_list[i][0][0],0,0,0,0,0,0,0],
+            [0,V_hat_list[i][1][1],0,0,0,0,0,0],
+            [0,0,V_hat_list[i][2][2],0,0,0,0,0],
+            [0,0,0,V_hat_list[i][3][3],0,0,0,0],
+            [0,0,0,0,V_hat_list[i][4][4],0,0,0],
+            [0,0,0,0,0,V_hat_list[i][5][5],0,0],
+            [0,0,0,0,0,0,V_hat_list[i][6][6],0],
+            [0,0,0,0,0,0,0,V_hat_list[i][7][7]]
             ], dtype=np.float32)@A.T+Q
 
         #更新ステップ
@@ -109,7 +109,7 @@ def ekf(dt,simulate_time,X_hat,Y,Q,R,V_hat,delta,u):
         G=_V_hat@H.T@inv_VR
 
         ##事後推定値
-        X_hat=_X_hat+G@(Y[i]-H@_X_hat)
+        X_hat=_X_hat+G@(Y-H@_X_hat)
         X_hat_list.append(X_hat)
 
         ##事後誤差共分散

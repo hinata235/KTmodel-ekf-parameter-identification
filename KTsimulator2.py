@@ -43,8 +43,8 @@ def KTsim2(dt,simulate_time,X0,Q,R,delta,u):
 
     #観測行列Hを生成
     H=np.array([
-        [0,0,0,0,1,0,0,0,0],
-        [0,0,0,0,0,1,0,0,0]
+        [0,0,0,0,1,0,0,0],
+        [0,0,0,0,0,1,0,0]
         ])
 
     for i in range(int(simulate_time/dt)):
@@ -64,10 +64,9 @@ def KTsim2(dt,simulate_time,X0,Q,R,delta,u):
             u*np.cos(X[4]),
             u*np.sin(X[4]),
             X[4]+X[5]*dt,
-            X[5]+X[6]*dt,
-            X[8]*delta[i]-X[7]*X[5],
-            X[7],
-            X[8]
+            (1-X[6]*dt)*X[5]+X[7]*delta[i]*dt,
+            X[6],
+            X[7]
         ])+v
 
         X_list.append(X)

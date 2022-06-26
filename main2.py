@@ -7,10 +7,10 @@ from ekf import ekf
 
 
 if __name__=="__main__":
-    np.random.seed(5)
+    np.random.seed(50)
     #シミュレーションのパラメーターを設定
     dt=0.1
-    simulate_time=400
+    simulate_time=600
     u=15/1.944
     T_true=60
     K_true=0.15
@@ -21,20 +21,18 @@ if __name__=="__main__":
         [0],
         [0],
         [0],
-        [0],
         [1/T_true],
         [K_true/T_true]],dtype=np.float32)
 
     Q_true=np.array([
-    [0,0,0,0,0,0,0,0,0],#x
-    [0,0,0,0,0,0,0,0,0],#y
-    [0,0,0,0,0,0,0,0,0],#dx
-    [0,0,0,0,0,0,0,0,0],#dy
-    [0,0,0,0,0,0,0,0,0],#psi
-    [0,0,0,0,0,0.000001,0,0,0],#r
-    [0,0,0,0,0,0,0,0,0],#dr
-    [0,0,0,0,0,0,0,0,0],#theta1
-    [0,0,0,0,0,0,0,0,0]]#theta2
+    [0,0,0,0,0,0,0,0],#x
+    [0,0,0,0,0,0,0,0],#y
+    [0,0,0,0,0,0,0,0],#dx
+    [0,0,0,0,0,0,0,0],#dy
+    [0,0,0,0,0,0,0,0],#psi
+    [0,0,0,0,0,0.0001,0,0],#r
+    [0,0,0,0,0,0,0,0],#theta1
+    [0,0,0,0,0,0,0,0]]#theta2
     ,dtype=np.float32)
 
     R_true=np.array([
@@ -42,6 +40,7 @@ if __name__=="__main__":
         [0,0.01]]
         ,dtype=np.float32)
 
+    
     delta=[20*np.pi/180 for i in range(int(simulate_time/dt))]
 
     X_list=0
@@ -63,49 +62,50 @@ if __name__=="__main__":
         [0],
         [0],
         [0],
-        [0],
         [1/T],
-        [K/T]],dtype=np.float32)
+        [K/T]
+        ],dtype=np.float32)
+
 
     Q=np.array([
-    [0,0,0,0,0,0,0,0,0],#x
-    [0,0,0,0,0,0,0,0,0],#y
-    [0,0,0,0,0,0,0,0,0],#dx
-    [0,0,0,0,0,0,0,0,0],#dy
-    [0,0,0,0,0,0,0,0,0],#psi
-    [0,0,0,0,0,0,0,0,0],#r
-    [0,0,0,0,0,0,0,0,0],#dr
-    [0,0,0,0,0,0,0,0.001,0],#theta1
-    [0,0,0,0,0,0,0,0,0.0001]]#theta2
+    [0,0,0,0,0,0,0,0],#x
+    [0,0,0,0,0,0,0,0],#y
+    [0,0,0,0,0,0,0,0],#dx
+    [0,0,0,0,0,0,0,0],#dy
+    [0,0,0,0,0,0,0,0],#psi
+    [0,0,0,0,0,0.01,0,0],#r
+    [0,0,0,0,0,0,0.0001,0],#theta1
+    [0,0,0,0,0,0,0,0.0001]]#theta2
     ,dtype=np.float32)
 
     R=np.array([
         [0,0],
-        [0,0.1]]
+        [0,0.01]]
         ,dtype=np.float32)
 
     V_hat=np.array([
-    [1000,0,0,0,0,0,0,0,0],#x
-    [0,1000,0,0,0,0,0,0,0],#y
-    [0,0,1000,0,0,0,0,0,0],#dx
-    [0,0,0,1000,0,0,0,0,0],#dy
-    [0,0,0,0,1000,0,0,0,0],#psi
-    [0,0,0,0,0,1000,0,0,0],#r
-    [0,0,0,0,0,0,1000,0,0],#dr
-    [0,0,0,0,0,0,0,1000,0],#theta1
-    [0,0,0,0,0,0,0,0,1000]]#theta2
+    [0,0,0,0,0,0,0,0],#x
+    [0,0,0,0,0,0,0,0],#y
+    [0,0,0,0,0,0,0,0],#dx
+    [0,0,0,0,0,0,0,0],#dy
+    [0,0,0,0,0,0,0,0],#psi
+    [0,0,0,0,0,10000,0,0],#r
+    [0,0,0,0,0,0,10000,0],#theta1
+    [0,0,0,0,0,0,0,10000]]#theta2
     ,dtype=np.float32)
+
 
     #カルマンフィルタを実行
     X_hat_list,V_hat_list,A_list=ekf(dt,simulate_time,X_hat0,Y_list,Q,R,V_hat,delta,u)
 
-
-    draw([[X_list,"True"]],1,dt,simulate_time)
+    draw([[X_hat_list,"Estimation"],[X_list,"True"]],1,dt,simulate_time)
     #plt.savefig("r.png")
     plt.show()
+
     draw([[Y_list,"Observation"],[X_hat_list,"Estimation"],[X_list,"True"]],2,dt,simulate_time)
     #plt.savefig("r.png")
     plt.show()
+
     draw([[Y_list,"Observation"],[X_hat_list,"Estimation"],[X_list,"True"]],3,dt,simulate_time)
     #plt.savefig("r.png")
     plt.show()

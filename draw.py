@@ -52,7 +52,7 @@ def draw(list,mode,dt,simulate_time):
     #T
     elif mode==4:
         for l in list:
-            plt.plot([t*dt for t in range(len(l[0]))],[1/l[0][i][7] for i in range(len(l[0]))],label=f'{l[1]}')
+            plt.plot([t*dt for t in range(len(l[0]))],[1/l[0][i][6] for i in range(len(l[0]))],label=f'{l[1]}')
         plt.plot([t*dt for t in range(len(l[0]))],[60 for t in range(len(l[0]))],label="True")
         plt.xlabel("time[s]")
         plt.ylabel("T [s]")
@@ -64,7 +64,7 @@ def draw(list,mode,dt,simulate_time):
     #K
     elif mode==5:
         for l in list:
-            plt.plot([t*dt for t in range(len(l[0]))],[l[0][i][8]/l[0][i][7] for i in range(len(l[0]))],label=f'{l[1]}')
+            plt.plot([t*dt for t in range(len(l[0]))],[l[0][i][7]/l[0][i][6] for i in range(len(l[0]))],label=f'{l[1]}')
         plt.plot([t*dt for t in range(len(l[0]))],[0.15 for t in range(len(l[0]))],label="True")
         plt.xlabel("time[s]")
         plt.ylabel("K [1/s]")
