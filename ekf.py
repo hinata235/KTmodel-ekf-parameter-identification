@@ -26,9 +26,9 @@ def ekf(dt,simulate_time,X_hat,Y_list,Q,R,V_hat,delta,u):
         Y:観測値[phi,r],list 2行1列
             phi:回頭角[rad]
             r:回答角速度[rad/s]
-        Q:システムノイズの分散共分散行列,ndarray 9行9列
+        Q:システムノイズの分散共分散行列,ndarray 8行8列
         R:観測ノイズの分散共分散行列,ndarray 2行2列
-        P:共分散行列の初期値 9行9列
+        P:共分散行列の初期値 8行8列
         delta:舵角[rad],list
 
     返り値
@@ -39,7 +39,7 @@ def ekf(dt,simulate_time,X_hat,Y_list,Q,R,V_hat,delta,u):
             theta2
     """
 
-    #観測関数行列H　2行4列
+    #観測関数行列H　2行8列
     H=np.array([
         [0,0,0,0,1,0,0,0],
         [0,0,0,0,0,1,0,0]
