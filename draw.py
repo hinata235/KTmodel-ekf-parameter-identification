@@ -11,8 +11,8 @@ def draw(list,mode,dt,simulate_time):
                 1:位置(x,y)
                 2:回頭角phi
                 3:回頭角速度r
-                4:時定数T
-                5:追従性指数K
+                4:追従性指数T
+                5:旋回性指数K
         dt:観測幅
 
     """
@@ -46,19 +46,19 @@ def draw(list,mode,dt,simulate_time):
                 plt.plot([t*dt for t in range(len(l[0]))],[l[0][i][5] for i in range(len(l[0]))],label=f'{l[1]}')
         plt.xlabel("time[s]")
         plt.ylabel("angle rate r[rad/s]")
-        plt.title("time VS angle rate")
+        plt.title("time VS angle rate" )
         plt.legend()
         
     #T
     elif mode==4:
         for l in list:
             plt.plot([t*dt for t in range(len(l[0]))],[1/l[0][i][6] for i in range(len(l[0]))],label=f'{l[1]}')
-        plt.plot([t*dt for t in range(len(l[0]))],[60 for t in range(len(l[0]))],label="True")
+        plt.plot([t*dt for t in range(len(l[0]))],[60 for t in range(len(l[0]))],label="True",c="orange")
         plt.xlabel("time[s]")
         plt.ylabel("T [s]")
-        plt.title("time VS T")
+        plt.title("parameter T" )
         plt.xlim(0,simulate_time)
-        plt.ylim(-0.1,100)
+        plt.ylim(-10,100)
         plt.legend()
         
     #K
@@ -68,11 +68,11 @@ def draw(list,mode,dt,simulate_time):
         plt.plot([t*dt for t in range(len(l[0]))],[0.15 for t in range(len(l[0]))],label="True")
         plt.xlabel("time[s]")
         plt.ylabel("K [1/s]")
-        plt.title("time VS K")
+        plt.title("parameter K")
         plt.xlim(0,simulate_time)
         plt.ylim(-0.1,0.3)
         plt.legend()
-        
+    
     
     else:
         print("mode must be 0,1,2,3,4,5")

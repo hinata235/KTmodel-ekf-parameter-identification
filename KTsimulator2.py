@@ -19,8 +19,8 @@ def KTsim2(dt,simulate_time,X0,Q,R,delta,u):
             r:回答角速度[rad/s]
             theta1=1/T
             theta2=K/T
-                K:追従性指数[1/s]
-                T:時定数[s]
+                K:旋回性指数[1/s]
+                T:追従性指数[s]
         Q:システムノイズの分散共分散行列,ndarray 9行9列
         R:観測ノイズの分散共分散行列,ndarray 2行2列
         delta:舵角[rad],list
